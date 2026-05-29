@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: weather-ml-api
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: |
+      pip install -r requirements.txt
+      python -m model.train_model
+    startCommand: >
+      gunicorn api.server:app
+      -k uvicorn.workers.UvicornWorker
+      --workers 2
+      --bind 0.0.0.0:${PORT:-8000}
+      --timeout 120
+      --keep-alive 5
+      --log-level info
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: https://weather-ml.vercel.app
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+    healthCheckPath: /health
